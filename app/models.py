@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
     email: so.Mapped[str] = so.mapped_column(sa.String(120), index=True, unique=True)
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
     role: so.Mapped[str] = so.mapped_column(sa.String(24), nullable=False, default='Normal')
+    flash_cards: so.Mapped[list['FlashCard']] = relationship(back_populates='user', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username}, email={self.email}, role={self.role})"
@@ -32,3 +33,15 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(id):
     return db.session.get(User, int(id))
+
+
+@dataclass
+class FlashCard(db.Model):
+    __tablename__ = 'flash_cards'
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    topic: so.Mapped[str] = so.mapped_column(sa.String(24), index=True)
+    question: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
+    answer: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
+
+    user_id: so.Mapped[int] = so.mapped_column(ForeignKey('users.id'), index=True)
+    user: so.Mapped['User'] = relationship(back_populates='flash_cards')
