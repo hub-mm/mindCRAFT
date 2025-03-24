@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% import "bootstrap_wtf.html" as wtf %}
+
+{% block content %}
+<h1>Admin Page</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        {% for header in headers %}
+            <th>{{ header }}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                <form action="" method="POST" novalidate enctype="multipart/form-data">
+                    {{ form.csrf_token() }}
+                    {{ form.delete(value=user.id) }}
+                    {{ form.change(value=-1) }}
+                    <button class="btn" type="submit"><i class="bi bi-trash3"></i></button>
+                </form>
+            </td>
+            <td>
+                <form action="" method="POST" novalidate enctype="multipart/form-data">
+                    {{ form.csrf_token() }}
+                    {{ form.change(value=user.id) }}
+                    {{ form.delete(value=-1) }}
+                    <button class="btn" type="submit">
+                        {% if user.role == 'Normal' %}
+                            <i class="bi bi-toggle-off"></i>
+                        {% else %}
+                            <i class="bi bi-toggle-on"></i>
+                        {% endif %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
