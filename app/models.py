@@ -6,8 +6,9 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.testing.schema import mapped_column
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db, login
+from app import db, login, get_serializer
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
@@ -42,6 +43,22 @@ class FlashCard(db.Model):
     topic: so.Mapped[str] = so.mapped_column(sa.String(24), index=True)
     question: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
     answer: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
+    seen: so.Mapped[bool] = so.mapped_column(sa.Boolean, nullable=False, default=False)
+    last_seen: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime, default=None)
 
     user_id: so.Mapped[int] = so.mapped_column(ForeignKey('users.id'), index=True)
     user: so.Mapped['User'] = relationship(back_populates='flash_cards')
+
+    @property
+    def hashed_id(self):
+        s = get_serializer()
+        return s.dumps(self.id)
+
+    @classmethod
+    def decode_hashed_id(cls, token):
+        s = get_serializer()
+        try:
+            original_id = s.loads(token)
+            return original_id
+        except Exception:
+            return None
