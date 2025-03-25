@@ -4,8 +4,10 @@ from app.forms import ChooseForm, LoginForm, ChangePasswordForm, RegisterForm, C
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.models import User
+from app.models import User, FlashCard
 from urllib.parse import urlsplit
+from datetime import datetime
+import random
 
 
 @app.route('/')
@@ -167,9 +169,87 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+
 @app.route('/flash_cards')
 def flash_cards():
-    return render_template('flash_cards.html', title='Flash Cards')
+    topics = set(card.topic for card in current_user.flash_cards)
+    return render_template(
+        'flash_cards.html',
+        title='Flash Cards',
+        topics=topics
+    )
+
+
+@app.route('/flash_cards/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+def flash_cards_by_topic(topic, hashed_id, show):
+    cards = [card for card in current_user.flash_cards if card.topic == topic]
+    if not cards:
+        flash('No cards exists for this topic.', 'danger')
+        return redirect(url_for('flash_cards'))
+
+    card = None
+    if hashed_id != 'next':
+        card_id = FlashCard.decode_hashed_id(hashed_id)
+        if card_id:
+            card = next((card for card in cards if card.id == card_id), None)
+
+    if card is None:
+        unseen_cards = [card for card in cards if not card.seen]
+        if not unseen_cards:
+            for card in cards:
+                card.seen = False
+            db.session.commit()
+            unseen_cards = cards
+        card = random.choice(unseen_cards)
+
+    card.seen = True
+    card.last_seen = datetime.now()
+    db.session.commit()
+
+    form = ChooseForm()
+    return render_template(
+        'flash_cards_topic.html',
+        title=f"{topic.title()} Flash Cards",
+        topic=topic,
+        hashed_id=card.hashed_id,
+        show=show,
+        card=card,
+        form=form
+    )
+
+
+@app.route('/flip_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+def flip_card(topic, hashed_id, show):
+    new_show = 'answer' if show == 'question' else 'question'
+    return redirect(url_for(
+        'flash_cards_by_topic',
+        topic=topic,
+        hashed_id=hashed_id,
+        show=new_show
+    ))
+
+
+@app.route('/previous_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+def previous_card(topic, hashed_id, show):
+    cards = [card for card in current_user.flash_cards if card.topic == topic]
+    seen_cards = sorted(cards, key=lambda card: card.last_seen)
+    prev_card_hashed_id = seen_cards[-2].hashed_id
+    return redirect(url_for(
+        'flash_cards_by_topic',
+        topic=topic,
+        hashed_id=prev_card_hashed_id,
+        show='question'
+    ))
+
+
+@app.route('/next_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+def next_card(topic, hashed_id, show):
+    return redirect(url_for(
+        'flash_cards_by_topic',
+        topic=topic,
+        hashed_id='next',
+        show='question'
+    ))
 
 
 # Error handlers

@@ -2,4 +2,19 @@
 {% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
+<h1>Flash Cards</h1>
+<h2>Topics</h2>
+{% if topics %}
+    {% for topic in topics %}
+        <a class="btn btn-dark" href="{{ url_for(
+        'flash_cards_by_topic',
+        topic=topic,
+        hashed_id='next',
+        show='question') }}">
+            {{ topic|title }}
+        </a>
+    {% endfor %}
+{% else %}
+    <h3 class="text-body-secondary">Add a topic to get started</h3>
+{% endif %}
 {% endblock %}
