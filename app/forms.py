@@ -35,6 +35,8 @@ def not_equal(form, field):
 class ChooseForm(FlaskForm):
     delete = HiddenField('Choice')
     change = HiddenField('Choice')
+    next = HiddenField('Choice')
+    prev = HiddenField('Choice')
 
 
 class RegisterForm(FlaskForm):
