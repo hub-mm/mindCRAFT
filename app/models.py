@@ -40,7 +40,7 @@ def load_user(id):
 class FlashCard(db.Model):
     __tablename__ = 'flash_cards'
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    topic: so.Mapped[str] = so.mapped_column(sa.String(24), index=True)
+    topic: so.Mapped[str] = so.mapped_column(sa.String(24), index=True, nullable=False)
     question: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
     answer: so.Mapped[str] = so.mapped_column(sa.Text, nullable=False)
     seen: so.Mapped[bool] = so.mapped_column(sa.Boolean, nullable=False, default=False)
