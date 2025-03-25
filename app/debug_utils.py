@@ -20,6 +20,9 @@ def reset_db():
     u1.flash_cards.append(FlashCard(topic='math', question='9 + 10', answer='19'))
     u1.flash_cards.append(FlashCard(topic='math', question='2 + 4', answer='6'))
     u1.flash_cards.append(FlashCard(topic='math', question='5 + 5', answer='10'))
+    u1.flash_cards.append(FlashCard(topic='math', question='6 + 5', answer='11'))
+    u1.flash_cards.append(FlashCard(topic='math', question='6 + 6', answer='12'))
+    u1.flash_cards.append(FlashCard(topic='math', question='10 + 5', answer='15'))
     u1.flash_cards.append(FlashCard(
         topic='building usable software',
         question='Stages in Software Development Life Cycle',
