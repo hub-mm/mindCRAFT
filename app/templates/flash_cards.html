@@ -2,19 +2,48 @@
 {% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
-<h1>Flash Cards</h1>
+<h1 class="border-bottom border-dark border-5 pb-5 mb-5">Flash Cards</h1>
 <h2>Topics</h2>
 {% if topics %}
-    {% for topic in topics %}
-        <a class="btn btn-dark" href="{{ url_for(
-        'flash_cards_by_topic',
-        topic=topic,
-        hashed_id='next',
-        show='question') }}">
-            {{ topic|title }}
-        </a>
+    {% for topic, info in topics.items() %}
+        <div class="d-flex mb-2">
+            <a class="btn btn-dark me-2" href="{{ url_for(
+            'flash_cards_by_topic',
+            topic=topic,
+            hashed_id='next',
+            show='question') }}">
+                {{ topic|title }}
+            </a>
+            {% for id, content in info.items() %}
+                <form action=""
+                      method="POST"
+                      novalidate
+                      enctype="multipart/form-data">
+                    {{ form.csrf_token() }}
+                    {{ form.new(value=id) }}
+                    <button class="btn btn-outline-dark h-100">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </form>
+            {% endfor %}
+        </div>
     {% endfor %}
 {% else %}
-    <h3 class="text-body-secondary">Add a topic to get started</h3>
+    <h3 class="text-body-secondary">Add a flash cards to get started</h3>
 {% endif %}
+<div class="container border rounded bg-light p-3 mt-5">
+    <h2>Create Flash Card</h2>
+    <form action="" method="POST" novalidate>
+        {{ form.hidden_tag() }}
+        {{ wtf.form_field(form.topic, False) }}
+        {{ wtf.form_field(form.question, False) }}
+        {{ wtf.form_field(form.answer, False) }}
+        <div class="d-flex">
+            {{ wtf.form_field(form.submit, False) }}
+            {% if mode == 'new' %}
+                <a class="btn btn-outline-dark ms-2 h-100" href="{{ url_for('flash_cards') }}">Cancel</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
 {% endblock %}

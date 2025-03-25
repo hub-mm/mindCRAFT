@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import (SubmitField, HiddenField, StringField, PasswordField,
-                     BooleanField, IntegerField, ValidationError, EmailField)
-from wtforms.validators import DataRequired, NumberRange, Length, EqualTo
+                     BooleanField, ValidationError, EmailField)
+from wtforms.fields.simple import TextAreaField
+from wtforms.validators import DataRequired, Length, EqualTo
 from email_validator import validate_email, EmailNotValidError
 import re
 
@@ -31,6 +32,7 @@ def not_equal(form, field):
     if field.data == form.email.data:
         raise ValidationError('Backup Email must be different from Email')
 
+
 # Forms
 class ChooseForm(FlaskForm):
     delete = HiddenField('Choice')
@@ -41,7 +43,6 @@ class ChooseForm(FlaskForm):
 
 class RegisterForm(FlaskForm):
     email = EmailField('Email', validators=[DataRequired(), valid_email])
-    backup_email = EmailField('Backup Email', validators=[DataRequired(), valid_email, not_equal])
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[
         DataRequired(),
@@ -72,15 +73,23 @@ class ChangePasswordForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password', validators=[
         DataRequired(),
         EqualTo('new_password', message='Passwords must match'),
-     ])
+    ])
     submit = SubmitField('Update Password')
 
 
 class ChangeEmail(FlaskForm):
     email = EmailField('Email', validators=[DataRequired(), valid_email])
     new_email = EmailField('New Email', validators=[DataRequired(), valid_email])
-    confirm_email = EmailField('Confirm Email',validators=[
+    confirm_email = EmailField('Confirm Email', validators=[
         DataRequired('You must enter and Email'),
         EqualTo('new_email', message='Email\'s must match')
     ])
     submit = SubmitField('Update Email')
+
+
+class AddFlashCardForm(FlaskForm):
+    new = HiddenField(default='-1')
+    topic = StringField('Topic', validators=[DataRequired()])
+    question = TextAreaField('Question', validators=[DataRequired()])
+    answer = TextAreaField('Answer', validators=[DataRequired()])
+    submit = SubmitField('Add Flash Card')

@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, request, send_file, send_from_directory
 from app import app
-from app.forms import ChooseForm, LoginForm, ChangePasswordForm, RegisterForm, ChangeEmail
+from app.forms import ChooseForm, LoginForm, ChangePasswordForm, RegisterForm, ChangeEmail, AddFlashCardForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app import db
@@ -10,11 +10,13 @@ from datetime import datetime
 import random
 
 
+# Not Logged In Access & Logged In Access
 @app.route('/')
 def home():
     return render_template('home.html', title='Home')
 
 
+# Not Logged In Access
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
@@ -61,6 +63,7 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
+# Admin Access
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
@@ -125,61 +128,47 @@ def admin():
     )
 
 
-@app.route('/account', methods=['GET', 'POST'])
-@login_required
-def account():
-    return render_template(
-        'account.html',
-        title='Account',
-    )
-
-
-@app.route('/settings', methods=['GET', 'POST'])
-@login_required
-def settings():
-    return render_template(
-        'settings.html',
-        title='Settings',
-    )
-
-
-@app.route('/change_password', methods=['GET', 'POST'])
-@login_required
-def change_password():
-    form = ChangePasswordForm()
-    if form.validate_on_submit():
-        user = db.session.scalar(
-            sa.select(User).where(User.username == current_user.username)
-        )
-        if not user.check_password(form.password.data):
-            flash('Invalid password', 'danger')
-            return redirect(url_for('change_password'))
-
-        user.set_password(form.new_password.data)
-        db.session.commit()
-        flash('Password has been changed successfully', 'success')
-        return redirect(url_for('home'))
-
-    return render_template('change_password.html', title='Change Password', form=form)
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('home'))
-
-
-@app.route('/flash_cards')
-def flash_cards():
-    topics = sorted(set(card.topic for card in current_user.flash_cards))
+def reset_and_get_topic_info():
+    topics = {card.topic: {card.id: {'question': card.question, 'answer': card.answer}}
+              for card in current_user.flash_cards}
     for card in current_user.flash_cards:
         card.seen = False
     db.session.commit()
+    return topics
+
+
+# User Access
+@app.route('/flash_cards', methods=['POST', 'GET'])
+def flash_cards():
+    topics = reset_and_get_topic_info()
+    form = AddFlashCardForm()
+    if form.new.data != '-1':
+        card = db.session.get(FlashCard, form.new.data)
+        card_form = AddFlashCardForm(topic=card.topic.title())
+        return render_template(
+            'flash_cards.html',
+            title='Flash Cards',
+            topics=topics,
+            form=card_form,
+            mode='new'
+        )
+
+    if form.validate_on_submit():
+        new_card = FlashCard(
+            topic=form.topic.data.lower().strip(),
+            question=form.question.data.strip(),
+            answer=form.answer.data.strip()
+        )
+        current_user.flash_cards.append(new_card)
+        db.session.commit()
+        return redirect(url_for('flash_cards'))
+
     return render_template(
         'flash_cards.html',
         title='Flash Cards',
-        topics=topics
+        topics=topics,
+        form=form,
+        mode='normal'
     )
 
 
@@ -279,8 +268,41 @@ def next_card(topic, hashed_id, show):
     ))
 
 
-# Error handlers
-# See: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    return render_template(
+        'settings.html',
+        title='Settings',
+    )
+
+
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        user = db.session.scalar(
+            sa.select(User).where(User.username == current_user.username)
+        )
+        if not user.check_password(form.password.data):
+            flash('Invalid password', 'danger')
+            return redirect(url_for('change_password'))
+
+        user.set_password(form.new_password.data)
+        db.session.commit()
+        flash('Password has been changed successfully', 'success')
+        return redirect(url_for('home'))
+
+    return render_template('change_password.html', title='Change Password', form=form)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
 
 # Error handler for 403 Forbidden
 @app.errorhandler(403)
