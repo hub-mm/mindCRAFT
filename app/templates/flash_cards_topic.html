@@ -2,57 +2,58 @@
 {% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
-<h1 class="text-center">{{ topic|title }}</h1>
-<div class="w-100">
-    <div class="d-flex">
-        <form class="mt-2"
-              action="{{ url_for(
+<h1 class="text-center fw-bold border-bottom border-dark border-5 pb-5 mb-2">{{ topic|title }}</h1>
+<div class="d-flex w-100" style="height: 500px">
+    <form class="my-5"
+          action="{{ url_for(
               'previous_card',
               topic=topic,
               hashed_id=hashed_id,
               show=show
               ) }}"
-              method="POST"
-              novalidate
-              enctype="multipart/form-data">
-            <button class="btn btn-dark">
-                <i class="bi bi-caret-left"></i>
-            </button>
-        </form>
-        <form class="fw-bold mx-1 mt-2 w-100"
-              action="{{ url_for(
+          method="POST"
+          novalidate
+          enctype="multipart/form-data">
+        <button class="btn btn-dark h-100">
+            <i class="bi bi-caret-left"></i>
+        </button>
+    </form>
+    <form class="fw-bold mx-1 w-100"
+          action="{{ url_for(
               'flip_card',
               topic=topic,hashed_id=card.hashed_id,show=show
               ) }}"
-              method="POST"
-              novalidate
-              enctype="multipart/form-data">
-            {{ form.csrf_token() }}
-            {{ form.change(value=card.id) }}
-            {% if show == 'question' %}
-            <button class="btn btn-dark fw-bold w-100" type="submit">
-                {{ card.question }}
-            </button>
-            {% else %}
-            <button class="btn btn-success fw-bold w-100" type="submit">
-                {{ card.answer }}
-            </button>
-            {% endif %}
-        </form>
-        <form class="mt-2"
-              action="{{ url_for(
+          method="POST"
+          novalidate
+          enctype="multipart/form-data">
+        {{ form.csrf_token() }}
+        {{ form.change(value=card.id) }}
+        {% if show == 'question' %}
+        <button class="btn btn-dark fw-bold w-100 h-100" type="submit">
+            {{ card.question }}
+        </button>
+        {% else %}
+        <button class="btn btn-success fw-bold w-100 h-100" type="submit">
+            {{ card.answer }}
+        </button>
+        {% endif %}
+    </form>
+    <form class="my-5"
+          action="{{ url_for(
               'next_card',
               topic=topic,
               hashed_id=card.hashed_id,
               show=show
               ) }}"
-              method="POST"
-              novalidate
-              enctype="multipart/form-data">
-            <button class="btn btn-dark">
-                <i class="bi bi-caret-right"></i>
-            </button>
-        </form>
-    </div>
+          method="POST"
+          novalidate
+          enctype="multipart/form-data">
+        <button class="btn btn-dark h-100">
+            <i class="bi bi-caret-right"></i>
+        </button>
+    </form>
 </div>
+<h2 class="text-center fw-bold border-top border-dark border-5 pt-5 mt-2">
+    {{ complete }} / {{ total }}
+</h2>
 {% endblock %}

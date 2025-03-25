@@ -172,7 +172,10 @@ def logout():
 
 @app.route('/flash_cards')
 def flash_cards():
-    topics = set(card.topic for card in current_user.flash_cards)
+    topics = sorted(set(card.topic for card in current_user.flash_cards))
+    for card in current_user.flash_cards:
+        card.seen = False
+    db.session.commit()
     return render_template(
         'flash_cards.html',
         title='Flash Cards',
@@ -201,10 +204,18 @@ def flash_cards_by_topic(topic, hashed_id, show):
             db.session.commit()
             unseen_cards = cards
         card = random.choice(unseen_cards)
+        if any(card.last_seen for card in cards):
+            seen_cards = sorted(cards, key=lambda card: card.last_seen or datetime.min)
+            last_seen_card = seen_cards[-1] if seen_cards else None
+            if len(cards) > 1:
+                while last_seen_card and card.id == last_seen_card.id:
+                    card = random.choice(unseen_cards)
 
+    if not card.seen:
+        card.last_seen = datetime.now()
     card.seen = True
-    card.last_seen = datetime.now()
     db.session.commit()
+    complete = len(cards) - len([card for card in cards if not card.seen])
 
     form = ChooseForm()
     return render_template(
@@ -214,6 +225,8 @@ def flash_cards_by_topic(topic, hashed_id, show):
         hashed_id=card.hashed_id,
         show=show,
         card=card,
+        total=len(cards),
+        complete=complete,
         form=form
     )
 
@@ -232,8 +245,22 @@ def flip_card(topic, hashed_id, show):
 @app.route('/previous_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 def previous_card(topic, hashed_id, show):
     cards = [card for card in current_user.flash_cards if card.topic == topic]
-    seen_cards = sorted(cards, key=lambda card: card.last_seen)
-    prev_card_hashed_id = seen_cards[-2].hashed_id
+    seen_cards = sorted([card for card in cards if card.last_seen is not None],
+                        key=lambda card: card.last_seen)
+    current_card_id = FlashCard.decode_hashed_id(hashed_id)
+
+    current_index = None
+    for i, card in enumerate(seen_cards):
+        if card.id == current_card_id:
+            current_index = i
+            break
+    if current_index is None:
+        current_index = len(seen_cards) - 1
+
+    prev_index = (current_index - 1) % len(seen_cards)
+    prev_card = seen_cards[prev_index]
+    prev_card_hashed_id = prev_card.hashed_id
+
     return redirect(url_for(
         'flash_cards_by_topic',
         topic=topic,
