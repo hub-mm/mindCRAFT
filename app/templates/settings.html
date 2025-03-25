@@ -2,7 +2,7 @@
 {% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
-<h1>Settings</h1>
+<h1 class="border-bottom border-dark border-5 pb-5 mb-5">Settings</h1>
 <a class="btn btn-dark" href="{{ url_for('change_password') }}">Change Password</a>
 <a class="btn btn-dark" href="{{ url_for('logout') }}">Logout</a>
 {% endblock %}
