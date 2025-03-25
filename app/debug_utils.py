@@ -20,6 +20,11 @@ def reset_db():
     u1.flash_cards.append(FlashCard(topic='math', question='9 + 10', answer='19'))
     u1.flash_cards.append(FlashCard(topic='math', question='2 + 4', answer='6'))
     u1.flash_cards.append(FlashCard(topic='math', question='5 + 5', answer='10'))
+    u1.flash_cards.append(FlashCard(
+        topic='building usable software',
+        question='Stages in Software Development Life Cycle',
+        answer='1. Planning, 2. Analysis, 3. Design, 4. Implementation, 5. Testing, 6. Deployment')
+    )
 
     db.session.add_all([u1, u2, u3, u4, u5])
     db.session.commit()
