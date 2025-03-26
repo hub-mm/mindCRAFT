@@ -3,3 +3,6 @@
 # system generated
 __pycache__
 .idea
+
+# database
+*.sqlite
