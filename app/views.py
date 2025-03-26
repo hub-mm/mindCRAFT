@@ -129,8 +129,13 @@ def admin():
 
 
 def reset_and_get_topic_info():
-    topics = {card.topic: {card.id: {'question': card.question, 'answer': card.answer}}
-              for card in current_user.flash_cards}
+    topics = {}
+    for card in current_user.flash_cards:
+        if card.topic in topics:
+            topics[card.topic][card.id] = {'question': card.question, 'answer': card.answer}
+        else:
+            topics[card.topic] = {card.id: {'question': card.question, 'answer': card.answer}}
+
     for card in current_user.flash_cards:
         card.seen = False
     db.session.commit()
@@ -153,7 +158,49 @@ def flash_cards():
             mode='new'
         )
 
-    if form.validate_on_submit():
+    if form.edit.data != '-1':
+        topic = form.edit.data
+        return render_template(
+            'flash_cards.html',
+            title='Flash Cards',
+            topics=topics,
+            form=form,
+            topic_edit=topic,
+            mode='edit'
+        )
+
+    if form.edit_question.data != '-1' and not form.submit_edit.data:
+        card = db.session.get(FlashCard, form.edit_question.data)
+        card_form = AddFlashCardForm(
+            topic=card.topic.title(),
+            question=card.question.capitalize(),
+            answer=card.answer.capitalize()
+        )
+        return render_template(
+            'flash_cards.html',
+            title='Flash Cards',
+            topics=topics,
+            form=card_form,
+            topic_edit=card.topic,
+            mode='edit'
+        )
+
+    if form.delete.data != '-1':
+        card = db.session.get(FlashCard, form.delete.data)
+        db.session.delete(card)
+        db.session.commit()
+        return redirect(url_for('flash_cards'))
+
+    if form.submit_edit.data and form.validate_on_submit():
+        card = db.session.get(FlashCard, form.edit_question.data)
+        card.topic = form.topic.data.lower().strip()
+        card.question = form.question.data.strip()
+        card.answer = form.answer.data.strip()
+        db.session.commit()
+        form.edit_question.data = '-1'
+        return redirect(url_for('flash_cards'))
+
+    if form.submit.data and form.validate_on_submit():
         new_card = FlashCard(
             topic=form.topic.data.lower().strip(),
             question=form.question.data.strip(),

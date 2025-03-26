@@ -88,8 +88,14 @@ class ChangeEmail(FlaskForm):
 
 
 class AddFlashCardForm(FlaskForm):
-    new = HiddenField(default='-1')
     topic = StringField('Topic', validators=[DataRequired()])
     question = TextAreaField('Question', validators=[DataRequired()])
     answer = TextAreaField('Answer', validators=[DataRequired()])
+
+    new = HiddenField(default='-1')
+    edit = HiddenField(default='-1')
+    edit_question = HiddenField(default='-1')
+    delete = HiddenField(default='-1')
+
     submit = SubmitField('Add Flash Card')
+    submit_edit = SubmitField('Edit Flash Card')
