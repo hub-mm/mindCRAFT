@@ -147,7 +147,7 @@ def reset_and_get_topic_info():
 def flash_cards():
     topics = reset_and_get_topic_info()
     form = AddFlashCardForm()
-    if form.new.data != '-1':
+    if form.new.data != '-1' and not form.submit.data:
         card = db.session.get(FlashCard, form.new.data)
         card_form = AddFlashCardForm(topic=card.topic.title())
         return render_template(
@@ -197,7 +197,6 @@ def flash_cards():
         card.question = form.question.data.strip()
         card.answer = form.answer.data.strip()
         db.session.commit()
-        form.edit_question.data = '-1'
         return redirect(url_for('flash_cards'))
 
     if form.submit.data and form.validate_on_submit():

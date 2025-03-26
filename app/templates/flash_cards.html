@@ -48,11 +48,11 @@
                         <tr class="table-light">
                             <th colspan="2"></th>
                         </tr>
-                        <tr>
+                        <tr class="text-start">
                             <th>Question:</th>
                             <td>{{ content.question }}</td>
                         </tr>
-                        <tr>
+                        <tr class="text-start">
                             <th>Answer:</th>
                             <td>{{ content.answer }}</td>
                         </tr>
@@ -97,7 +97,7 @@
         {{ wtf.form_field(form.question, False) }}
         {{ wtf.form_field(form.answer, False) }}
         <div class="d-flex">
-            {% if mode == 'normal' %}
+            {% if mode == 'normal' or mode == 'new' %}
                 {{ wtf.form_field(form.submit, False) }}
             {% elif mode == 'edit' %}
                 {{ wtf.form_field(form.submit_edit, False) }}
