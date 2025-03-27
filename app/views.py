@@ -1,3 +1,5 @@
+from crypt import methods
+
 from flask import render_template, redirect, url_for, flash, request, send_file, send_from_directory
 from app import app
 from app.forms import ChooseForm, LoginForm, ChangePasswordForm, RegisterForm, ChangeEmail, AddFlashCardForm
@@ -46,7 +48,7 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('user_home'))
     form = LoginForm()
     if form.validate_on_submit():
         user = db.session.scalar(
@@ -58,7 +60,7 @@ def login():
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or urlsplit(next_page).netloc != '':
-            next_page = url_for('home')
+            next_page = url_for('user_home')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
@@ -143,6 +145,26 @@ def reset_and_get_topic_info():
 
 
 # User Access
+@app.route('/user_home', methods=['POST', 'GET'])
+def user_home():
+    card_date = [card.last_seen.date() if card.last_seen else None for card in current_user.flash_cards]
+    now = datetime.now().date()
+    cards_today = card_date.count(now)
+    cards_total = len(card_date)
+    cards_scaled = round((cards_today / cards_total) * 50) if cards_total != 0 else 0
+    cards_info = {
+        'cards_total': cards_total,
+        'cards_today': cards_today,
+        'cards_scaled': cards_scaled,
+        'now': now
+    }
+    return render_template(
+        'user_home.html',
+        title=f"Home {current_user.username}",
+        cards_info=cards_info
+    )
+
+
 @app.route('/flash_cards', methods=['POST', 'GET'])
 def flash_cards():
     topics = reset_and_get_topic_info()

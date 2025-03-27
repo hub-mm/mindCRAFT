@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="border-bottom border-dark border-5 pb-5 mb-5">Welcome {{ current_user.username }}</h1>
+<div class="border rounded p-2">
+    <h2 class="bg-light text-center rounded mb-3">Flash Cards Today</h2>
+    <div class="bg-light rounded mh-100 m-2">
+        {% for i in range(cards_info.cards_total)|reverse %}
+            {% if i < cards_info.cards_today %}
+                <div class="bg-success p-1 m-1"></div>
+            {% else %}
+                <div class="bg-danger p-1 m-1"></div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <h3 class="text-light text-center bg-dark rounded p-2">
+        {{ cards_info.cards_today }} / {{ cards_info.cards_total }}
+    </h3>
+</div>
+{% endblock %}
