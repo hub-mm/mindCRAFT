@@ -1,6 +1,4 @@
-from crypt import methods
-
-from flask import render_template, redirect, url_for, flash, request, send_file, send_from_directory
+from flask import render_template, redirect, url_for, flash, request
 from app import app
 from app.forms import ChooseForm, LoginForm, ChangePasswordForm, RegisterForm, ChangeEmail, AddFlashCardForm
 from flask_login import current_user, login_user, logout_user, login_required
@@ -10,6 +8,21 @@ from app.models import User, FlashCard
 from urllib.parse import urlsplit
 from datetime import datetime
 import random
+
+
+# Helper Functions
+def reset_and_get_topic_info():
+    topics = {}
+    for card in current_user.flash_cards:
+        if card.topic in topics:
+            topics[card.topic][card.id] = {'question': card.question, 'answer': card.answer}
+        else:
+            topics[card.topic] = {card.id: {'question': card.question, 'answer': card.answer}}
+
+    for card in current_user.flash_cards:
+        card.seen = False
+    db.session.commit()
+    return topics
 
 
 # Not Logged In Access & Logged In Access
@@ -130,22 +143,9 @@ def admin():
     )
 
 
-def reset_and_get_topic_info():
-    topics = {}
-    for card in current_user.flash_cards:
-        if card.topic in topics:
-            topics[card.topic][card.id] = {'question': card.question, 'answer': card.answer}
-        else:
-            topics[card.topic] = {card.id: {'question': card.question, 'answer': card.answer}}
-
-    for card in current_user.flash_cards:
-        card.seen = False
-    db.session.commit()
-    return topics
-
-
 # User Access
 @app.route('/user_home', methods=['POST', 'GET'])
+@login_required
 def user_home():
     card_date = [card.last_seen.date() if card.last_seen else None for card in current_user.flash_cards]
     now = datetime.now().date()
@@ -166,6 +166,7 @@ def user_home():
 
 
 @app.route('/flash_cards', methods=['POST', 'GET'])
+@login_required
 def flash_cards():
     topics = reset_and_get_topic_info()
     form = AddFlashCardForm()
@@ -241,6 +242,7 @@ def flash_cards():
 
 
 @app.route('/flash_cards/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@login_required
 def flash_cards_by_topic(topic, hashed_id, show):
     cards = [card for card in current_user.flash_cards if card.topic == topic]
     if not cards:
@@ -289,6 +291,7 @@ def flash_cards_by_topic(topic, hashed_id, show):
 
 
 @app.route('/flip_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@login_required
 def flip_card(topic, hashed_id, show):
     new_show = 'answer' if show == 'question' else 'question'
     return redirect(url_for(
@@ -300,6 +303,7 @@ def flip_card(topic, hashed_id, show):
 
 
 @app.route('/previous_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@login_required
 def previous_card(topic, hashed_id, show):
     cards = [card for card in current_user.flash_cards if card.topic == topic]
     seen_cards = sorted([card for card in cards if card.last_seen is not None],
@@ -327,6 +331,7 @@ def previous_card(topic, hashed_id, show):
 
 
 @app.route('/next_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@login_required
 def next_card(topic, hashed_id, show):
     return redirect(url_for(
         'flash_cards_by_topic',
