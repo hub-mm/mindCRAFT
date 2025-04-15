@@ -148,15 +148,15 @@ def admin():
 @login_required
 def user_home():
     card_date = [card.last_seen.date() if card.last_seen else None for card in current_user.flash_cards]
-    now = datetime.now().date()
-    cards_today = card_date.count(now)
+    today = datetime.now().date()
+    cards_today = card_date.count(today)
     cards_total = len(card_date)
-    cards_scaled = round((cards_today / cards_total) * 50) if cards_total != 0 else 0
+    cards_percent_complete = round((cards_today / cards_total) * 100) if cards_total != 0 else 0
     cards_info = {
+        'today': today,
         'cards_total': cards_total,
         'cards_today': cards_today,
-        'cards_scaled': cards_scaled,
-        'now': now
+        'cards_percent_complete': cards_percent_complete
     }
     return render_template(
         'user_home.html',
