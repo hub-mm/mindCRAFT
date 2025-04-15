@@ -165,9 +165,19 @@ def user_home():
     )
 
 
-@app.route('/flash_cards', methods=['POST', 'GET'])
-@login_required
-def flash_cards():
+@app.route('/delete_card', methods=['POST', 'GET'])
+def delete_card():
+    form = AddFlashCardForm()
+    if form.delete.data != '-1':
+        card = db.session.get(FlashCard, form.delete.data)
+        db.session.delete(card)
+        db.session.commit()
+        return redirect(url_for('flash_cards'))
+    return redirect(url_for('flash_cards'))
+
+
+@app.route('/add_to_topic', methods=['POST', 'GET'])
+def add_to_topic():
     topics = reset_and_get_topic_info()
     form = AddFlashCardForm()
     if form.new.data != '-1' and not form.submit.data:
@@ -181,17 +191,22 @@ def flash_cards():
             mode='new'
         )
 
-    if form.edit.data != '-1':
-        topic = form.edit.data
-        return render_template(
-            'flash_cards.html',
-            title='Flash Cards',
-            topics=topics,
-            form=form,
-            topic_edit=topic,
-            mode='edit'
+    if form.submit.data and form.validate_on_submit():
+        new_card = FlashCard(
+            topic=form.topic.data.lower().strip(),
+            question=form.question.data.strip(),
+            answer=form.answer.data.strip()
         )
+        current_user.flash_cards.append(new_card)
+        db.session.commit()
+        return redirect(url_for('flash_cards'))
+    return redirect(url_for('flash_cards'))
 
+
+@app.route('/edit_card', methods=['POST', 'GET'])
+def edit_card():
+    topics = reset_and_get_topic_info()
+    form = AddFlashCardForm()
     if form.edit_question.data != '-1' and not form.submit_edit.data:
         card = db.session.get(FlashCard, form.edit_question.data)
         card_form = AddFlashCardForm(
@@ -208,12 +223,6 @@ def flash_cards():
             mode='edit'
         )
 
-    if form.delete.data != '-1':
-        card = db.session.get(FlashCard, form.delete.data)
-        db.session.delete(card)
-        db.session.commit()
-        return redirect(url_for('flash_cards'))
-
     if form.submit_edit.data and form.validate_on_submit():
         card = db.session.get(FlashCard, form.edit_question.data)
         card.topic = form.topic.data.lower().strip()
@@ -222,13 +231,18 @@ def flash_cards():
         db.session.commit()
         return redirect(url_for('flash_cards'))
 
-    if form.submit.data and form.validate_on_submit():
-        new_card = FlashCard(
-            topic=form.topic.data.lower().strip(),
-            question=form.question.data.strip(),
-            answer=form.answer.data.strip()
-        )
-        current_user.flash_cards.append(new_card)
+
+@app.route('/flash_cards', methods=['POST', 'GET'])
+@login_required
+def flash_cards():
+    topics = reset_and_get_topic_info()
+    form = AddFlashCardForm()
+    if form.validate_on_submit():
+        topic = form.topic.data.lower().strip()
+        question = form.question.data.strip()
+        answer = form.answer.data.strip()
+        card = FlashCard(topic=topic, question=question, answer=answer)
+        current_user.flash_cards.append(card)
         db.session.commit()
         return redirect(url_for('flash_cards'))
 
