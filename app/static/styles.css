@@ -1,3 +1,7 @@
+* {
+    font-family: 'Lucida Console', 'Courier New', monospace;
+}
+
 html,
 body {
     height: 100%;
@@ -8,4 +12,32 @@ body {
 body {
     display: flex;
     flex-direction: column;
+}
+
+.green_background {
+    background-color: rgb(1,40,32);
+}
+
+.letter_spacing_small {
+    letter-spacing: 2px;
+}
+
+.letter_spacing_med {
+    letter-spacing: 3px;
+}
+
+.letter_spacing_big {
+    letter-spacing: 4px;
+}
+
+.all_cards_small {
+    padding: 1px;
+}
+
+.all_cards_med {
+    padding: 3px;
+}
+
+.all_cards_big {
+    padding: 6px;
 }
