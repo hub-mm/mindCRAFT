@@ -6,7 +6,7 @@
 <div class="d-flex w-100" style="height: 500px">
     <form class="my-5"
           action="{{ url_for(
-              'previous_card',
+              'flashcards.previous_card',
               topic=topic,
               hashed_id=hashed_id,
               show=show
@@ -20,7 +20,7 @@
     </form>
     <form class="fw-bold mx-1 w-100"
           action="{{ url_for(
-              'flip_card',
+              'flashcards.flip_card',
               topic=topic,hashed_id=card.hashed_id,show=show
               ) }}"
           method="POST"
@@ -40,7 +40,7 @@
     </form>
     <form class="my-5"
           action="{{ url_for(
-              'next_card',
+              'flashcards.next_card',
               topic=topic,
               hashed_id=card.hashed_id,
               show=show
