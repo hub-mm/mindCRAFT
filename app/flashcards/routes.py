@@ -6,7 +6,6 @@ from app.models import FlashCard
 from app.utils import reset_and_get_topic_info
 from datetime import datetime
 import random
-from flask import Migrate
 
 flashcards_bp = Blueprint('flashcards', __name__, template_folder='templates/flashcards')
 
