@@ -46,6 +46,7 @@ class FlashCard(db.Model):
     seen: so.Mapped[bool] = so.mapped_column(sa.Boolean, nullable=False, default=False)
     last_seen: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime, default=None)
     times_seen: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
+    times_correct: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
     times_wrong: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
     ease: so.Mapped[int] = so.mapped_column(sa.Integer, default=10)
 
