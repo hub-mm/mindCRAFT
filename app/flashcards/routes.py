@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, abort
 from flask_login import current_user, login_required
 from app import db
 from app.forms import ChooseForm, AddFlashCardForm
 from app.models import FlashCard
-from app.utils import reset_and_get_topic_info
+from app.utils import reset_and_get_topic_info, grade_card
+import sqlalchemy as sa
 from datetime import datetime
 import random
 
@@ -24,10 +25,14 @@ def dashboard():
         'cards_today': cards_today,
         'cards_percent_complete': cards_percent_complete
     }
+    revision = db.session.scalars(
+        sa.select(FlashCard).where(FlashCard.ease <= 75).where(FlashCard.user_id == current_user.id)
+    ).all()
     return render_template(
         'dashboard.html',
         title=f"Home {current_user.username}",
-        cards_info=cards_info
+        cards_info=cards_info,
+        revision=revision
     )
 
 
@@ -101,10 +106,23 @@ def edit_card():
         return redirect(url_for('.flashcards'))
 
 
-@flashcards_bp.route('/', methods=['POST', 'GET'])
+@flashcards_bp.route('/topics', methods=['POST', 'GET'])
 @login_required
 def flashcards():
     topics = reset_and_get_topic_info(current_user)
+    topics['revision'] = {
+        card.id: {
+            'topic': card.topic, 'question': card.question, 'answer': card.answer
+        } for card in current_user.flash_cards if card.ease <= 75
+    }
+    revision_topics = set(info['topic'] for card_id, info in topics['revision'].items())
+    for rev_topic in revision_topics:
+        topics[f"revision - {rev_topic}"] = {
+            card_id: {
+                'topic': info['topic'], 'question': info['question'], 'answer': info['answer']
+            } for card_id, info in topics['revision'].items() if info['topic'] == rev_topic
+        }
+
     form = AddFlashCardForm()
     if form.validate_on_submit():
         topic = form.topic.data.lower().strip()
@@ -127,7 +145,14 @@ def flashcards():
 @flashcards_bp.route('/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 @login_required
 def view_topic(topic, hashed_id, show):
-    cards = [card for card in current_user.flash_cards if card.topic == topic]
+    if topic == 'revision':
+        cards = [card for card in current_user.flash_cards if card.ease <= 75]
+    elif '-' in topic:
+        before, sep, after = topic.partition('-')
+        cards = [card for card in current_user.flash_cards if card.topic == after.strip() and card.ease <= 75]
+    else:
+        cards = [card for card in current_user.flash_cards if card.topic == topic]
+
     if not cards:
         flash('No cards exists for this topic.', 'danger')
         return redirect(url_for('.flashcards'))
@@ -188,7 +213,10 @@ def flip_card(topic, hashed_id, show):
 @flashcards_bp.route('/previous_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 @login_required
 def previous_card(topic, hashed_id, show):
-    cards = [card for card in current_user.flash_cards if card.topic == topic]
+    if topic == 'revision':
+        cards = [card for card in current_user.flash_cards if card.ease <= 75]
+    else:
+        cards = [card for card in current_user.flash_cards if card.topic == topic]
     seen_cards = sorted([card for card in cards if card.last_seen is not None],
                         key=lambda card: card.last_seen)
     current_card_id = FlashCard.decode_hashed_id(hashed_id)
@@ -220,5 +248,37 @@ def next_card(topic, hashed_id, show):
         '.view_topic',
         topic=topic,
         hashed_id='next',
+        show='question'
+    ))
+
+
+@flashcards_bp.route('/card_correct/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@login_required
+def card_correct(topic, hashed_id, show):
+    card_id = FlashCard.decode_hashed_id(hashed_id)
+    card = db.session.scalar(
+        sa.select(FlashCard).where(FlashCard.id == card_id).where(FlashCard.user_id == current_user.id)
+    ) or abort(404)
+    grade_card(card, True)
+    return redirect(url_for(
+        '.view_topic',
+        topic=topic,
+        hashed_id=hashed_id,
+        show='question'
+    ))
+
+
+@flashcards_bp.route('/card_wrong/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@login_required
+def card_wrong(topic, hashed_id, show):
+    card_id = FlashCard.decode_hashed_id(hashed_id)
+    card = db.session.scalar(
+        sa.select(FlashCard).where(FlashCard.id == card_id).where(FlashCard.user_id == current_user.id)
+    ) or abort(404)
+    grade_card(card, False)
+    return redirect(url_for(
+        '.view_topic',
+        topic=topic,
+        hashed_id=hashed_id,
         show='question'
     ))

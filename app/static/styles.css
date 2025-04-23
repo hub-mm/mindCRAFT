@@ -14,6 +14,10 @@ body {
     flex-direction: column;
 }
 
+.flashcard_container {
+    height: 500px;
+}
+
 .green_background {
     background-color: rgb(1,40,32);
 }
@@ -35,9 +39,13 @@ body {
 }
 
 .all_cards_med {
-    padding: 3px;
+    padding: 2px;
 }
 
 .all_cards_big {
     padding: 6px;
 }
+
+/* Buttons View */
+#toggleBtn[aria-expanded="true"]  .icon-open  { display: none; }
+#toggleBtn[aria-expanded="false"] .icon-close { display: none; }
