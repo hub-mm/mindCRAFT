@@ -4,16 +4,17 @@
 {% block content %}
 <h1 class="border-bottom border-dark border-5 pb-5 mb-5">Admin Page</h1>
 
-<table class="table">
-    <thead>
-    <tr>
-        {% for header in headers %}
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+        <tr>
+            {% for header in headers %}
             <th>{{ header }}</th>
-        {% endfor %}
-    </tr>
-    </thead>
-    <tbody>
-    {% for user in users %}
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
         <tr>
             <td>{{ user.id }}</td>
             <td>{{ user.username }}</td>
@@ -34,15 +35,16 @@
                     {{ form.delete(value=-1) }}
                     <button class="btn" type="submit">
                         {% if user.role == 'Normal' %}
-                            <i class="bi bi-toggle-off"></i>
+                        <i class="bi bi-toggle-off"></i>
                         {% else %}
-                            <i class="bi bi-toggle-on"></i>
+                        <i class="bi bi-toggle-on"></i>
                         {% endif %}
                     </button>
                 </form>
             </td>
         </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
