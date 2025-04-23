@@ -48,7 +48,7 @@ class FlashCard(db.Model):
     times_seen: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
     times_correct: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
     times_wrong: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
-    ease: so.Mapped[int] = so.mapped_column(sa.Integer, default=10)
+    ease: so.Mapped[int] = so.mapped_column(sa.Integer, default=100)
 
     user_id: so.Mapped[int] = so.mapped_column(ForeignKey('users.id'), index=True)
     user: so.Mapped['User'] = relationship(back_populates='flash_cards')
