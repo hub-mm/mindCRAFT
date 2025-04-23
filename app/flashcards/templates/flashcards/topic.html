@@ -3,7 +3,7 @@
 
 {% block content %}
 <h1 class="text-center fw-bold border-bottom border-dark border-5 pb-5 mb-2">{{ topic|title }}</h1>
-<div class="d-flex w-100" style="height: 500px">
+<div class="d-flex w-100 flashcard_container">
     <form class="my-5"
           action="{{ url_for(
               'flashcards.previous_card',
@@ -21,7 +21,9 @@
     <form class="fw-bold mx-1 w-100"
           action="{{ url_for(
               'flashcards.flip_card',
-              topic=topic,hashed_id=card.hashed_id,show=show
+              topic=topic,
+              hashed_id=card.hashed_id,
+              show=show
               ) }}"
           method="POST"
           novalidate
@@ -53,7 +55,27 @@
         </button>
     </form>
 </div>
-<h2 class="text-center fw-bold border-top border-dark border-5 pt-5 mt-2">
-    {{ complete }} / {{ total }}
-</h2>
+<div class="d-flex justify-content-center align-items-center border-top border-5 border-dark py-5 mt-2">
+    <a class="btn btn-danger mx-5 p-4"
+       href="{{ url_for(
+           'flashcards.card_wrong',
+           topic=topic,
+           hashed_id=card.hashed_id,
+           show=show
+            ) }}">
+        <i class="bi bi-x-lg fs-1"></i>
+    </a>
+    <h2 class="border-bottom border-5 border-dark text-center fw-bold px-4">
+        {{ complete }} / {{ total }}
+    </h2>
+    <a class="btn btn-success mx-5 p-4"
+       href="{{ url_for(
+           'flashcards.card_correct',
+           topic=topic,
+           hashed_id=card.hashed_id,
+           show=show
+            ) }}">
+        <i class="bi bi-check-lg fs-1"></i>
+    </a>
+</div>
 {% endblock %}

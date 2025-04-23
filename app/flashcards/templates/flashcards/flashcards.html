@@ -7,11 +7,15 @@
 {% if topics %}
 {% for topic, info in topics.items() %}
 {% set collapse_id = 'editCollapse_' ~ loop.index %}
+{% if topic == 'revision' %}
+<h2 class="text-danger mt-5">Tailored Revision</h2>
+{% endif %}
 <div class="d-flex mb-2 align-items-center">
-    <a class="btn btn-dark me-2"
+    <a class="btn btn-{{ 'danger' if 'revision' in topic else 'dark' }} me-2"
        href="{{ url_for('flashcards.view_topic', topic=topic, hashed_id='next', show='question') }}">
         {{ topic|title }}
     </a>
+    {% if 'revision' not in topic %}
     <form action="{{ url_for('flashcards.add_to_topic') }}" method="POST" novalidate enctype="multipart/form-data">
         {{ form.csrf_token() }}
         {{ form.new(value=info|first) }}
@@ -19,21 +23,25 @@
             <i class="bi bi-plus-lg"></i>
         </button>
     </form>
-    <button class="btn btn-outline-dark ms-2 h-100" type="button"
+    {% endif %}
+    <button class="btn btn-outline-dark ms-2 h-100"
+            type="button"
             data-bs-toggle="collapse"
             data-bs-target="#{{ collapse_id }}"
             aria-expanded="false"
             aria-controls="{{ collapse_id }}">
         <i class="bi bi-list"></i>
     </button>
-    {% if mode == 'edit' %}
-    <a class="btn btn-outline-dark ms-2 h-100" href="{{ url_for('flashcards.flashcards') }}">Cancel</a>
+    {% if mode == 'edit' or mode == 'new' %}
+    <a class="btn btn-outline-dark ms-2 h-100" href="{{ url_for('flashcards.flashcards') }}">
+        Cancel
+    </a>
     {% endif %}
 </div>
 
 <div class="collapse mb-3" id="{{ collapse_id }}">
     <div class="card card-body">
-        <h3 class="mt-3">Choose Question to Edit</h3>
+        <h3 class="mt-3">All Cards</h3>
         {% for id, content in info.items() %}
         <div class="d-flex mb-3">
             <table class="table">
@@ -79,22 +87,40 @@
 {% endif %}
 
 <div class="container border rounded bg-light p-3 my-5">
-    <h2>Create Flash Card</h2>
-    <form action="" method="POST" novalidate>
-        {{ form.hidden_tag() }}
-        {{ wtf.form_field(form.topic, False) }}
-        {{ wtf.form_field(form.question, False) }}
-        {{ wtf.form_field(form.answer, False) }}
-        <div class="d-flex">
-            {% if mode == 'normal' or mode == 'new' %}
-            {{ wtf.form_field(form.submit, False) }}
-            {% elif mode == 'edit' %}
-            {{ wtf.form_field(form.submit_edit, False) }}
-            {% endif %}
-            {% if mode == 'new' or mode == 'edit' %}
-            <a class="btn btn-outline-dark ms-2 h-100" href="{{ url_for('flashcards.flashcards') }}">Cancel</a>
-            {% endif %}
+    <div class="d-flex align-items-center justify-content-between">
+        <h2 class="m-0">Create Flash Card</h2>
+        <button class="btn btn-outline-dark ms-2 h-100"
+                id="toggleBtn"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#flashcardForm"
+                aria-expanded="{{ 'true' if mode == 'new' else 'false' }}"
+                aria-controls="flashcardForm">
+            <i class="bi bi-plus-lg icon-open"></i>
+            <i class="bi bi-dash-lg icon-close"></i>
+        </button>
+    </div>
+    <div class="collapse {{ 'show' if mode == 'new' else '' }}" id="flashcardForm">
+        <div class="card card-body mt-2">
+            <form action="" method="POST" novalidate>
+                {{ form.hidden_tag() }}
+                {{ wtf.form_field(form.topic, False) }}
+                {{ wtf.form_field(form.question, False) }}
+                {{ wtf.form_field(form.answer, False) }}
+                <div class="d-flex">
+                    {% if mode == 'normal' or mode == 'new' %}
+                    {{ wtf.form_field(form.submit, False) }}
+                    {% elif mode == 'edit' %}
+                    {{ wtf.form_field(form.submit_edit, False) }}
+                    {% endif %}
+                    {% if mode == 'new' or mode == 'edit' %}
+                    <a class="btn btn-outline-dark ms-2 h-100" href="{{ url_for('flashcards.flashcards') }}">
+                        Cancel
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %}

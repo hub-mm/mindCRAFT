@@ -8,18 +8,29 @@
     <h2 class="bg-light text-center rounded mb-3">Flash Cards Today</h2>
     <div class="bg-light rounded mh-100 my-1 mx-2">
         {% for i in range(total_cards)|reverse %}
-            {% if i < cards_info.cards_percent_complete %}
-                {% set rounded = 'rounded-top' if i == total_cards - 1 else '' %}
-                {% set top = 'border-top' if i == cards_info.cards_percent_complete - 1 else '' %}
-                <div class="green_background {{ size }} {{ rounded }} {{ top }}"></div>
-            {% else %}
-                {% set rounded = 'rounded-top' if i == total_cards - 1 else '' %}
-                <div class="bg-danger {{ size }} {{ rounded }}"></div>
-            {% endif %}
+        {% if i < cards_info.cards_percent_complete %}
+        {% set rounded = 'rounded-top' if i == total_cards - 1 else '' %}
+        {% set top = 'border-top' if i == cards_info.cards_percent_complete - 1 else '' %}
+        <div class="green_background {{ size }} {{ rounded }} {{ top }}"></div>
+        {% else %}
+        {% set rounded = 'rounded-top' if i == total_cards - 1 else '' %}
+        <div class="bg-danger {{ size }} {{ rounded }}"></div>
+        {% endif %}
         {% endfor %}
     </div>
     <h3 class="text-light text-center bg-dark rounded-bottom p-2">
         {{ cards_info.cards_today }} / {{ cards_info.cards_total }}
     </h3>
+</div>
+<div class="rounded shadow bg-light p-2 my-5">
+    {% if revision %}
+    <h5 class="text-danger">Here are some cards we recommend you revise</h5>
+    <a class="btn btn-dark"
+       href="{{ url_for('flashcards.view_topic', topic='revision', hashed_id='next', show='question') }}">
+        Revision
+    </a>
+    {% else %}
+    <h5 class="text-success">None of your cards revising</h5>
+    {% endif %}
 </div>
 {% endblock %}
