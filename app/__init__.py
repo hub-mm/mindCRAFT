@@ -41,7 +41,7 @@ def create_app(config_class=Config):
     app.register_blueprint(public_bp, url_prefix='/public')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
-    app.register_blueprint(flashcards_bp, url_prefix='/cards')
+    app.register_blueprint(flashcards_bp, url_prefix='/flashcards')
     app.register_blueprint(errors_bp)
 
     @app.shell_context_processor
