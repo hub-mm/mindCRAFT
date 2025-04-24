@@ -94,13 +94,13 @@
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#flashcardForm"
-                aria-expanded="{{ 'true' if mode == 'new' else 'false' }}"
+                aria-expanded="{{ 'true' if mode == 'new' or mode == 'edit' else 'false' }}"
                 aria-controls="flashcardForm">
             <i class="bi bi-plus-lg icon-open"></i>
             <i class="bi bi-dash-lg icon-close"></i>
         </button>
     </div>
-    <div class="collapse {{ 'show' if mode == 'new' else '' }}" id="flashcardForm">
+    <div class="collapse {{ 'show' if mode == 'new' or mode == 'edit' else '' }}" id="flashcardForm">
         <div class="card card-body mt-2">
             <form action="" method="POST" novalidate>
                 {{ form.hidden_tag() }}

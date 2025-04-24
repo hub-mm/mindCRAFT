@@ -85,8 +85,8 @@ def edit_card():
         card = db.session.get(FlashCard, form.edit_question.data)
         card_form = AddFlashCardForm(
             topic=card.topic.title(),
-            question=card.question.capitalize(),
-            answer=card.answer.capitalize()
+            question=card.question,
+            answer=card.answer
         )
         return render_template(
             'flashcards.html',
@@ -142,12 +142,12 @@ def flashcards():
     )
 
 
-@flashcards_bp.route('/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@flashcards_bp.route('/<path:topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 @login_required
 def view_topic(topic, hashed_id, show):
     if topic == 'revision':
         cards = [card for card in current_user.flash_cards if card.ease <= 75]
-    elif '-' in topic:
+    elif 'revision -' in topic:
         before, sep, after = topic.partition('-')
         cards = [card for card in current_user.flash_cards if card.topic == after.strip() and card.ease <= 75]
     else:
@@ -198,7 +198,7 @@ def view_topic(topic, hashed_id, show):
     )
 
 
-@flashcards_bp.route('/flip_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@flashcards_bp.route('/flip_card/<path:topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 @login_required
 def flip_card(topic, hashed_id, show):
     new_show = 'answer' if show == 'question' else 'question'
@@ -210,7 +210,7 @@ def flip_card(topic, hashed_id, show):
     ))
 
 
-@flashcards_bp.route('/previous_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@flashcards_bp.route('/previous_card/<path:topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 @login_required
 def previous_card(topic, hashed_id, show):
     if topic == 'revision':
@@ -241,7 +241,7 @@ def previous_card(topic, hashed_id, show):
     ))
 
 
-@flashcards_bp.route('/next_card/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@flashcards_bp.route('/next_card/<path:topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 @login_required
 def next_card(topic, hashed_id, show):
     return redirect(url_for(
@@ -252,7 +252,7 @@ def next_card(topic, hashed_id, show):
     ))
 
 
-@flashcards_bp.route('/card_correct/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@flashcards_bp.route('/card_correct/<path:topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 @login_required
 def card_correct(topic, hashed_id, show):
     card_id = FlashCard.decode_hashed_id(hashed_id)
@@ -260,15 +260,16 @@ def card_correct(topic, hashed_id, show):
         sa.select(FlashCard).where(FlashCard.id == card_id).where(FlashCard.user_id == current_user.id)
     ) or abort(404)
     grade_card(card, True)
+    flash('Well done!', 'success')
     return redirect(url_for(
-        '.view_topic',
+        '.next_card',
         topic=topic,
         hashed_id=hashed_id,
         show='question'
     ))
 
 
-@flashcards_bp.route('/card_wrong/<topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
+@flashcards_bp.route('/card_wrong/<path:topic>/<hashed_id>/<show>', methods=['POST', 'GET'])
 @login_required
 def card_wrong(topic, hashed_id, show):
     card_id = FlashCard.decode_hashed_id(hashed_id)
@@ -276,8 +277,9 @@ def card_wrong(topic, hashed_id, show):
         sa.select(FlashCard).where(FlashCard.id == card_id).where(FlashCard.user_id == current_user.id)
     ) or abort(404)
     grade_card(card, False)
+    flash('Better luck next time!', 'danger')
     return redirect(url_for(
-        '.view_topic',
+        '.next_card',
         topic=topic,
         hashed_id=hashed_id,
         show='question'
